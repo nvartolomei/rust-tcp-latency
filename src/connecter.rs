@@ -5,19 +5,22 @@ use std::{
 };
 
 use anyhow::Context;
+use rand::RngCore;
 
 pub struct Connecter {
     remote_addr: SocketAddr,
     send_interval: Duration,
+    send_bytes: usize,
 
     seq_num: u64,
 }
 
 impl Connecter {
-    pub fn new(remote_addr: SocketAddr, send_interval: Duration) -> Self {
+    pub fn new(remote_addr: SocketAddr, send_interval: Duration, send_bytes: usize) -> Self {
         Connecter {
             remote_addr,
             send_interval,
+            send_bytes,
             seq_num: 0,
         }
     }
@@ -27,14 +30,24 @@ impl Connecter {
         stream
             .set_nodelay(true)
             .with_context(|| "failed to set_nodelay(true)")?;
+
         let mut ostream = std::io::BufWriter::new(&stream);
         let mut istream = std::io::BufReader::new(&stream);
 
+        let mut rng = rand::thread_rng();
+        let mut payload = vec![0; self.send_bytes];
+        rng.fill_bytes(&mut payload);
+
         let mut read_buf = [0; std::mem::size_of::<u64>()];
+
         loop {
             let start = std::time::Instant::now();
-            let b = self.seq_num.to_be_bytes();
-            ostream.write_all(&b)?;
+            let seq_num_bytes = self.seq_num.to_be_bytes();
+            ostream.write_all(&seq_num_bytes)?;
+            let payload_len = payload.len().to_be_bytes();
+            ostream.write_all(&payload_len)?;
+            ostream.write_all(&payload)?;
+
             ostream.flush()?;
 
             istream.read_exact(&mut read_buf)?;

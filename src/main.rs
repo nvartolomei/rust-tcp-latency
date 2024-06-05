@@ -23,6 +23,9 @@ struct Args {
         default_value = "0.05"
     )]
     send_interval: Option<f64>,
+
+    #[arg(long, help = "number of bytes to send in each message (on top of the 16 bytes header)", default_value = "0")]
+    send_bytes: usize,
 }
 
 fn main() {
@@ -41,6 +44,7 @@ fn main() {
         Connecter::new(
             connect,
             std::time::Duration::from_secs_f64(args.send_interval.unwrap()),
+            args.send_bytes,
         )
         .run()
         .unwrap();

@@ -42,6 +42,12 @@ fn handle_connection(mut stream: TcpStream) {
         let mut read = [0; std::mem::size_of::<i64>()];
         match stream.read_exact(&mut read) {
             Ok(_n) => {
+                let mut payload_len = [0; std::mem::size_of::<usize>()];
+                stream.read_exact(&mut payload_len).unwrap();
+                let payload_len = usize::from_be_bytes(payload_len);
+                let mut payload = vec![0; payload_len];
+                stream.read_exact(&mut payload).unwrap();
+
                 stream.write_all(&read).unwrap();
             }
             Err(err) => {
