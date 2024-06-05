@@ -2,8 +2,10 @@ use std::net::SocketAddr;
 
 use clap::Parser;
 
+mod connecter;
 mod listener;
 
+use connecter::Connecter;
 use listener::Listener;
 
 #[derive(Parser, Debug)]
@@ -36,6 +38,12 @@ fn main() {
         Listener::new(listen).run().unwrap();
     } else if let Some(connect) = args.connect {
         println!("Starting rust-tcp-latency in connect mode to {}", connect);
+        Connecter::new(
+            connect,
+            std::time::Duration::from_secs_f64(args.send_interval.unwrap()),
+        )
+        .run()
+        .unwrap();
     } else {
         eprintln!("Error: --listen or --connect is required");
         std::process::exit(1);

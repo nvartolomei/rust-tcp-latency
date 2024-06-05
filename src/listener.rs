@@ -1,5 +1,7 @@
 use std::{
-    io::{Read, Write}, net::{SocketAddr, TcpListener, TcpStream}, thread
+    io::{Read, Write},
+    net::{SocketAddr, TcpListener, TcpStream},
+    thread,
 };
 
 use anyhow::Context;
@@ -35,17 +37,17 @@ impl Listener {
     }
 }
 
-fn handle_connection(mut stream: TcpStream)  {
+fn handle_connection(mut stream: TcpStream) {
     loop {
         let mut read = [0; std::mem::size_of::<i64>()];
         match stream.read_exact(&mut read) {
-            Ok(n) => {
-                stream.write(&read).unwrap();
+            Ok(_n) => {
+                stream.write_all(&read).unwrap();
             }
             Err(err) => {
                 eprintln!("Failed to read from stream: {}", err);
                 break;
             }
         }
-    }    
+    }
 }
